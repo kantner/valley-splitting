@@ -1,0 +1,45 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: Valley-Splitting
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Abel
+    family-names: Thayil
+    email: thayil@wias-berlin.de
+    affiliation: >-
+      Weierstrass Institute for Applied Analysis and
+      Stochastics (WIAS)
+    orcid: 'https://orcid.org/0000-0002-3438-5901'
+  - given-names: Lasse
+    family-names: Ermoneit
+    email: ermoneit@wias-berlin.de
+    orcid: 'https://orcid.org/0009-0006-0329-0164'
+    affiliation: >-
+      Weierstrass Institute for Applied Analysis and 
+      Stochastics (WIAS)
+  - affiliation: >-
+      Weierstrass Institute for Applied Analysis and
+      Stochastics (WIAS)
+    given-names: Markus
+    family-names: Kantner
+    email: kantner@wias-berlin.de
+    orcid: 'https://orcid.org/0000-0003-4576-3135'
+repository-code: 'https://github.com/kantner/valley-splitting'
+abstract: >-
+  MATLAB code to reproduce the figures and simulation
+  results of the paper "Theory of Valley Splitting in
+  Si/SiGe Spin-Qubits: Interplay of Strain, Resonances and
+  Random Alloy Disorder", arXiv:2412.20618
+  [cond-mat.mes-hall]
+keywords:
+  - valley-splitting
+  - silicon
+  - spin-qubits
+  - quantum-computing
+  - quantum-electronics
+license: MIT
