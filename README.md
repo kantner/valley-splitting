@@ -1,4 +1,4 @@
-# valley-splitting
+# Simulation Code supplementing arXiv:2412.20618
 This repository contains MATLAB code to reproduce the simulation results presented in
 
 Theory of Valley Splitting in Si/SiGe Spin-Qubits: Interplay of Strain, Resonances and Random Alloy Disorder
