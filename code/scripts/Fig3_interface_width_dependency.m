@@ -1,18 +1,14 @@
 function [] = Fig3_interface_width_dependency(par)
 % sweep over interface width
 
-
   % exportgraphics
     save_plot = 1; % 0 = off | 1 = on
 
   % set parameter range
     sigma_range = linspace(0.001,8.5,151) * par.units.ML;
 
-  % DEBUG
-    %par.E_cutoff = 4.0 * par.units.Ry;
-
   % QW
-    par.h_QW  = 75 * par.units.ML;
+    par.h_QW      = 75 * par.units.ML;
     par.X_barrier = 0.3;
  
   % grid
@@ -26,7 +22,7 @@ function [] = Fig3_interface_width_dependency(par)
 
   % set strain
     [eps_QW]     = strain_quantum_well(0.3, par);
-    eps_xy_range = [0, 0.1] * 1E-2;
+    eps_xy_range = [0, 0.1] * par.units.percent;
 
   %%%%%%%%%%%%%%%%%%
   % quantum dot parameters
@@ -43,27 +39,25 @@ function [] = Fig3_interface_width_dependency(par)
 
     
   for ieps = 1 : length(eps_xy_range)
-    par.eps = eps_QW;
-    par.eps(1,2) = eps_xy_range(ieps);
-    par.eps(2,1) = eps_xy_range(ieps);
+    eps = eps_QW;
+    eps(1,2) = eps_xy_range(ieps);
+    eps(2,1) = eps_xy_range(ieps);
 
   % compute conduction band parameters
-    [par] = compute_conduction_band_parameters(par.eps, par.xi, par);    
-
+    %[par] = compute_conduction_band_parameters(eps, par);  
+    [par] = compute_conduction_band_parameters(eps, par);
 
 
   for is = 1 : length(sigma_range)
 
     %%%%%%%%%%%%%%%%%  
-    % quantum well parameters
+    % quantum well interface width
       par.sigma_u   = sigma_range(is);
       par.sigma_l   = sigma_range(is);
-
-      
   
     %%%%%%%%%%%%%%%%
     % quantum well indicator
-      par.QW_indicator = 0.5 * tanh((par.z+par.h_QW)/par.sigma_l) + 0.5 * tanh(-par.z/par.sigma_u);
+      par.QW_indicator = 0.5 * tanh((par.z+0.5*par.h_QW)/par.sigma_l) + 0.5 * tanh((-par.z+0.5*par.h_QW)/par.sigma_u);
   
     % nominal alloy profile    
       par.X_QW         = par.X_barrier * (1 - par.QW_indicator);
@@ -76,7 +70,7 @@ function [] = Fig3_interface_width_dependency(par)
   
     % compute valley splitting
       compute_derivatives = 0;
-      [out] = compute_valley_splitting(x, compute_derivatives, par);
+      [out] = compute_valley_splitting(x, eps, compute_derivatives, par);
       
       
       mean_E_VS = out.M;
@@ -85,8 +79,7 @@ function [] = Fig3_interface_width_dependency(par)
       sigma     = out.sigma;
       Delta_det = out.Delta_det;
 
-      Delta_det_n = out.Delta_det_n;
-          
+      Delta_det_n = out.Delta_det_n;        
   
       map.mean_E_VS(ieps,is) = mean_E_VS;
       map.std_E_VS(ieps,is)  = sqrt(var_E_VS);

@@ -1,4 +1,4 @@
-function [c, C2, C4, C4p] = compute_bandstructure_coefficients(n_range, par)
+function [c, C2, C4, C4p] = compute_bandstructure_coefficients(n_range, eps, par)
 
 
     fprintf(1,'\n')
@@ -6,16 +6,15 @@ function [c, C2, C4, C4p] = compute_bandstructure_coefficients(n_range, par)
     
     %%%%%%%%%
     % plot results
-      plot_results = 0;
-
+      plot_results = 0;  
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Fourier domain Bloch factors at k0
       fprintf(1,'  Fourier domain Bloch factors ... ')
       tic
-      H = Hamiltonian(par.k0_vec, par);
+      H = Hamiltonian(par.k_Delta, eps, par);
       [c, ~] = eig(H);
-      c = c(:,par.idx_CB_low);
+      c = c(:,par.pp.idx_CB);
       toc
 
       par.c = c;
@@ -27,18 +26,20 @@ function [c, C2, C4, C4p] = compute_bandstructure_coefficients(n_range, par)
     if nargout >= 2
       fprintf(1,'  coefficients C(2) .............. ')
       tic
-      C2  = coeff_C2(n_range,tol,par);
+      C2  = coeff_C2(n_range, eps, tol, par);
       toc
     else
       fprintf(1,'  skip computation of C(2).\n')
     end
 
     if nargout >=3
-      fprintf(1,'  coefficients C(4) ........ ')
+      fprintf(1,'  coefficients C(4) .............. ')
+      %tic
+      %C4 = coeff_C4(n_range, eps, tol, par); % slow
+      %toc
       tic
-      %C4 = coeff_C4(n_range,tol,par)
-      C4 = coeff_C4_sym(n_range,tol,par);
-      toc
+      C4 = coeff_C4_sym(n_range, eps, tol, par); % fast
+      toc     
     else
       fprintf(1,'  skip computation of C(4).\n')
       C4 = zeros(size(n_range));
@@ -47,7 +48,7 @@ function [c, C2, C4, C4p] = compute_bandstructure_coefficients(n_range, par)
     if nargout >= 4
       fprintf(1,'  coefficients C(4,plus) ......... ')
       tic
-      C4p = coeff_C4p(n_range,tol,par);
+      C4p = coeff_C4p(n_range, eps, tol, par);
       toc
     else
       fprintf(1,'  skip computation of C(4,plus).\n')      
@@ -64,7 +65,7 @@ function [c, C2, C4, C4p] = compute_bandstructure_coefficients(n_range, par)
         case 3
           fprintf(1,'n\tC2\t\tC4\n')
         case 4
-          fprintf(1,'n\tC2\t\tC4\tC4(plus)\n')
+          fprintf(1,'n\tC2\t\tC4\t\tC4(plus)\n')
       end
       
       for i = 1 : length(n_range)

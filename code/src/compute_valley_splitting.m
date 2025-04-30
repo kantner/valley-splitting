@@ -1,4 +1,4 @@
-function [out] = compute_valley_splitting(x, compute_derivatives, par)
+function [out] = compute_valley_splitting(x, eps, compute_derivatives, par)
 % compute valley splitting for given epitaxial profile
 % INPUT
 %   x ... epitaxial profile modification
@@ -43,45 +43,35 @@ function [out] = compute_valley_splitting(x, compute_derivatives, par)
     
   % determinsitic part
     if compute_derivatives == 1
-      [Delta_det, D_Delta_det_dX, D_Delta_det_dpsi, Delta_det_n] = compute_Delta_det(psi0, x, par);
+      [Delta_det, D_Delta_det_dX, D_Delta_det_dpsi, Delta_det_n] = compute_Delta_det(psi0, E0, x, eps, par);
     else
-      [Delta_det, ~, ~, Delta_det_n] = compute_Delta_det(psi0, x, par);
+      [Delta_det, ~, ~, Delta_det_n] = compute_Delta_det(psi0, E0, x, eps, par);
     end
 
-  % random part (abs)
-    %[mean_abs_Delta_rand_sq, mean_real_Delta_rand_sq] = compute_Delta_rand(psi0, dX, par);
+  % random part: covariance
     if compute_derivatives == 1
-      [abs_Delta_rand_sq,  dabs_Delta_rand_sq_dX,  dabs_Delta_rand_sq_dpsi]  = compute_abs_Delta_rand_sq(psi0, x, par);
+      [Gamma,  dGamma_dX,  dGamma_dpsi]  = compute_Gamma(psi0, x, eps, par);
     else
-      [abs_Delta_rand_sq]  = compute_abs_Delta_rand_sq(psi0, x, par);
+      [Gamma]  = compute_Gamma(psi0, x, eps, par);
     end
 
-  % random part (real) - this is neglected in the Rice distribution, therefore no derivatives are required
-  % we compute this here only to check if it is small
-  %  [real_Delta_rand_sq] = compute_real_Delta_rand_sq(psi0, dX, par);
-
-    %abs_Delta_rand_sq
   %%%%%%%%%%%%%%%%%%%%%%%%  
   % Rice distribution parameters
     nu    = 2 * abs(Delta_det);
-    sigma = sqrt(2 * abs_Delta_rand_sq);
-
-    %sigma
-    %
+    sigma = sqrt(2 * Gamma);
+  
+  % consistency check
     if or(sigma < 0, imag(sigma)>0)
       error('sigma must be real and non-negative.')
     end
-    %}
-
-
 
   % provide functional derivatives
     if compute_derivatives == 1
       D_nu_dpsi = 2 * real( Delta_det'/abs(Delta_det) * D_Delta_det_dpsi );
       D_nu_dX   = 2 * real( Delta_det'/abs(Delta_det) * D_Delta_det_dX    );
 
-      D_sigma_dpsi = 1/sigma * dabs_Delta_rand_sq_dpsi;
-      D_sigma_dX   = 1/sigma * dabs_Delta_rand_sq_dX;
+      D_sigma_dpsi = 1/sigma * dGamma_dpsi;
+      D_sigma_dX   = 1/sigma * dGamma_dX;
     end
 
 

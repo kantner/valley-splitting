@@ -2,23 +2,20 @@ function [] = Fig5a_wiggle_well_wavenumber_and_amplitude_vs_shear_strain(par)
 
   %%%%%%%%%%%%%
   % energy cutoff
-    par.E_cutoff = 8 * par.units.Ry; % reduce for fast debugging
-
+    par.pp.E_cutoff = 12 * par.units.Ry;
 
   % exportgraphics
     save_plot = 1; % 0 = off | 1 = on
 
-
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % shear strain range
-    eps_range = linspace(0,0.2,101) * 1E-2;
+    eps_range = linspace(0, 0.2, 51) * par.units.percent;
     
-  % wave number and amplitude range   
-    x_range   = linspace(0,0.2,251);           % Fig 2
-    
- 
+  % amplitude range   
+    x_range   = linspace(0, 0.2, 101);
+
   % fixed k1
-    k1 = 0.16* 2*pi/par.a0;
+    k1 = 0.16 * 2*pi/par.a0;
     
   % allocate memory
     k0_list  = zeros(1, length(eps_range));
@@ -40,7 +37,7 @@ function [] = Fig5a_wiggle_well_wavenumber_and_amplitude_vs_shear_strain(par)
 
   %%%%%%%%%%%%%%%%
   % grid
-    par.N  = 2^11;
+    par.N  = 2^12;
     par.L  = 5*par.h_QW;
     par.dz = par.L/par.N;
     par.z  = [0:par.N-1]'*par.dz - par.L/2;
@@ -50,10 +47,12 @@ function [] = Fig5a_wiggle_well_wavenumber_and_amplitude_vs_shear_strain(par)
 
   %%%%%%%%%%%%%%%%
   % quantum well indicator
-    par.QW_indicator = 0.5 * tanh((par.z+par.h_QW)/par.sigma_l) + 0.5 * tanh(-par.z/par.sigma_u);
+    %par.QW_indicator = 0.5 * tanh((par.z+0.5*par.h_QW)/par.sigma_l) + 0.5*tanh((-par.z+0.5*par.h_QW)/par.sigma_u); % QW at [-h/2 h/2]
+    par.QW_indicator = 0.5 * tanh((par.z+par.h_QW)/par.sigma_l) + 0.5 * tanh((-par.z)/par.sigma_u); % QW at [-h 0]
+
 
   % nominal alloy profile    
-    par.X_QW         = par.X_barrier * (1 - par.QW_indicator);
+    par.X_QW = par.X_barrier * (1 - par.QW_indicator);
     
   % QW potential from nominal (smoothed) profile  
     par.U_QW = par.dEc * par.X_QW;
@@ -67,15 +66,15 @@ function [] = Fig5a_wiggle_well_wavenumber_and_amplitude_vs_shear_strain(par)
       % set up strain tensor
         eps_xy = eps_range(ieps);
 
-        par.eps      = eps_QW;
-        par.eps(1,2) = eps_xy;
-        par.eps(2,1) = eps_xy;
+        eps      = eps_QW;
+        eps(1,2) = eps_xy;
+        eps(2,1) = eps_xy;
 
       % compute conduction band parameters
-        [par] = compute_conduction_band_parameters(par.eps, par.xi, par);  
-
+        [par] = compute_conduction_band_parameters(eps, par);  
+        
       % store k0
-        k0_list(ieps)    = par.k0_vec(3); 
+        k0_list(ieps)    = par.k0; 
         C2_list(:,ieps)  = par.C2;
         C4m_list(:,ieps) = par.C4;
 
@@ -86,7 +85,7 @@ function [] = Fig5a_wiggle_well_wavenumber_and_amplitude_vs_shear_strain(par)
 
       % compute valley splitting
         compute_derivatives = 0;
-        [out] = compute_valley_splitting(x_ww, compute_derivatives, par);
+        [out] = compute_valley_splitting(x_ww, eps, compute_derivatives, par);
     
         mean_E_VS = out.M;        
         std_E_VS  = sqrt(out.V);
@@ -112,11 +111,11 @@ function [] = Fig5a_wiggle_well_wavenumber_and_amplitude_vs_shear_strain(par)
       x_axis_min   = 0;
       x_axis_max   = 0.2;
       c_axis_min   = 0;
-      c_axis_max   = 3.5;
+      c_axis_max   = 2.4;
       %cmap         = divergingColormap1(25);
-      cmap         = flipud(lajolla(14));
+      cmap         = flipud(lajolla(12));
 
-      y_axis_range = eps_range * 100;
+      y_axis_range = eps_range / par.units.percent;
       y_axis_label = 'shear strain \epsilon_{x,y} (%)';
       y_axis_min   = 0;
       y_axis_max   = 0.15;

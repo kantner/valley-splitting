@@ -2,7 +2,7 @@ function [] = Fig2_bandstructure_coeffs_vs_strain(par)
 
   %%%%%%%%%%%%%
   % energy cutoff
-    par.E_cutoff = 8 * par.units.Ry; % reduce for fast debugging
+    par.pp.E_cutoff = 12 * par.units.Ry; % reduce for fast debugging
 
 
   % exportgraphics
@@ -11,7 +11,7 @@ function [] = Fig2_bandstructure_coeffs_vs_strain(par)
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % shear strain range
-    eps_range = linspace(0,0.5,21) * 1E-2;
+    eps_range = linspace(0,0.5,21) * par.units.percent;
     
   % allocate memory
     k0_list = zeros(1, length(eps_range));
@@ -28,18 +28,20 @@ function [] = Fig2_bandstructure_coeffs_vs_strain(par)
       % set up strain tensor
         eps_xy = eps_range(ieps);
 
-        par.eps      = eps_QW;
-        par.eps(1,2) = eps_xy;
-        par.eps(2,1) = eps_xy;
+        eps      = eps_QW;
+        eps(1,2) = eps_xy;
+        eps(2,1) = eps_xy;
 
       % compute conduction band parameters
-        [par] = compute_conduction_band_parameters(par.eps, par.xi, par);  
+        [par] = compute_conduction_band_parameters(eps, par);  
 
       % store k0
-        k0_list(ieps)   = par.k0_vec(3); 
+        k0_list(ieps)   = par.k0;
         C2_list(:,ieps) = par.C2;
         C4_list(:,ieps) = par.C4;
     end    
+
+  %% plot  
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % bandstructure coefficients C2
@@ -50,14 +52,14 @@ function [] = Fig2_bandstructure_coeffs_vs_strain(par)
       for i = 1 : 2
       subplot(1,2,i); hold all;
 
-      cmap = lines(length(par.n_range));
+      cmap = temperatureColormap(length(par.n_range));
       for in = 1 : length(par.n_range)
         if sum(abs(C2_list(in,:))) > 0
         plot(eps_range*100, C2_list(in,:),'-','Color',cmap(in,:),'LineWidth',2,'DisplayName',['C^{(2)}_{',num2str(par.n_range(in)),'}'])
         end
       end
 
-      plot(eps_range*100, -58.9*eps_range,'m--','Color',cmap(in,:),'LineWidth',2,'DisplayName',['fit'])
+      plot(eps_range*100, -32.0*eps_range,'m--','Color',cmap(in,:),'LineWidth',2,'DisplayName',['fit'])
 
 
       legend('Location','eastoutside')
@@ -67,11 +69,11 @@ function [] = Fig2_bandstructure_coeffs_vs_strain(par)
         if i == 1
           set(gca,'XScale','linear')
           set(gca,'YScale','linear')
-          ylim([-0.005 0.001])
+          ylim([-0.0025 0.003])
         else
           set(gca,'XScale','linear')
           set(gca,'YScale','linear')
-          ylim([-0.31 -0.04])
+          ylim([-0.26 -0.01])
         end
       end
 
@@ -84,7 +86,7 @@ function [] = Fig2_bandstructure_coeffs_vs_strain(par)
         set(fig_obj,'Position',[100 100 width height]);
         exportgraphics(fig_obj,'Fig2a_C2_vs_eps_xy.pdf','ContentType','vector')
       end
-
+%%
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % bandstructure coefficients C4m
     fig_obj = figure(90005); clf; hold all;
@@ -94,7 +96,7 @@ function [] = Fig2_bandstructure_coeffs_vs_strain(par)
       for i = 1 : 2
       subplot(1,2,i); hold all;
 
-      cmap = lines(length(par.n_range));
+      cmap = temperatureColormap(length(par.n_range));
       for in = 1 : length(par.n_range)
         if sum(abs(C4_list(in,:))) > 0  && par.n_range(in) >= 0 % only positive because of symmetry     
         plot(eps_range*100, C4_list(in,:),'-','Color',cmap(in,:),'LineWidth',2,'DisplayName',['C^{(4,-)}_{\pm',num2str(par.n_range(in)),'}'])
@@ -107,11 +109,11 @@ function [] = Fig2_bandstructure_coeffs_vs_strain(par)
         if i == 1
           set(gca,'XScale','linear')
           set(gca,'YScale','linear')
-          ylim([-0.01 0.145])  
+          ylim([-0.1 0.1])  
         elseif i == 2
           set(gca,'XScale','linear')
           set(gca,'YScale','linear')
-          ylim([1.3 1.4])  
+          ylim([1.35 1.40])  
         end
       end
       

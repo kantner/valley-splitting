@@ -1,14 +1,8 @@
 function [] = Fig4_wiggle_well_line_plots(par)
 % make plot like Joynt/Feng (2022), Fig 3
 
-  %%%%%%%%%%%%%
-   par.E_cutoff = 8 * par.units.Ry; 
-
-
   % exportgraphics
     save_plot = 1; % 0 = off | 1 = on
-
-    
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % strain tensor for QW
@@ -36,7 +30,9 @@ function [] = Fig4_wiggle_well_line_plots(par)
 
   %%%%%%%%%%%%%%%%
   % quantum well indicator
-    par.QW_indicator = 0.5 * tanh((par.z+par.h_QW)/par.sigma_l) + 0.5 * tanh(-par.z/par.sigma_u);
+    %par.QW_indicator = 0.5 * tanh((par.z+0.5*par.h_QW)/par.sigma_l) + 0.5*tanh((-par.z+0.5*par.h_QW)/par.sigma_u); % QW at [-h/2 h/2]
+    par.QW_indicator = 0.5 * tanh((par.z+par.h_QW)/par.sigma_l) + 0.5 * tanh((-par.z)/par.sigma_u); % QW at [-h 0]
+
 
   % nominal alloy profile    
     par.X_QW         = par.X_barrier * (1 - par.QW_indicator);
@@ -62,21 +58,17 @@ function [] = Fig4_wiggle_well_line_plots(par)
   % FIRST PLOT
   % no shear strain vs. q, different x
     
-    eps_xy   = 0*1E-2;       
+    eps_xy   = 0 * par.units.percent;
     q_range  = linspace(0,2,301) * 2*pi/par.a0;
-    %x_range  = [0.01 0.025 0.05 0.1];
     x_range  = [0.01 0.05 0.1 0.15];
 
-
   % set QW strain + fixed shear strain 
-    par.eps      = eps_QW;
-    par.eps(1,2) = eps_xy;
-    par.eps(2,1) = eps_xy;
+    eps      = eps_QW;
+    eps(1,2) = eps_xy;
+    eps(2,1) = eps_xy;
     
-
- 
-  % compute conduction band parameters
-    [par] = compute_conduction_band_parameters(par.eps, par.xi, par);    
+  % compute conduction band parameters    
+    [par] = compute_conduction_band_parameters(eps, par);
 
   % sweep  
     for ix = 1 : length(x_range)
@@ -86,7 +78,7 @@ function [] = Fig4_wiggle_well_line_plots(par)
         x_ww = x_wiggle_well(x_range(ix), q_range(iq), 0, par);
 
       % compute valley splitting
-        [out] = compute_valley_splitting(x_ww, compute_derivatives, par);
+        [out] = compute_valley_splitting(x_ww, eps, compute_derivatives, par);
     
         mean_E_VS = out.M;
         var_E_VS  = out.V;
@@ -108,19 +100,15 @@ function [] = Fig4_wiggle_well_line_plots(par)
   %%%%%%%%%%%
   % SECOND PLOT
   % small shear strain vs. q, different x
+    eps_xy   = 0.1 * par.units.percent;
     
-    eps_xy   = 0.1*1E-2;       
-    %q_range  = linspace(0,2,201) * 2*pi/par.a0;
-    %x_range  = [0.01 0.02 0.05 0.1];
-
-
   % set QW strain + fixed shear strain 
-    par.eps      = eps_QW;
-    par.eps(1,2) = eps_xy;
-    par.eps(2,1) = eps_xy;
+    eps      = eps_QW;
+    eps(1,2) = eps_xy;
+    eps(2,1) = eps_xy;
     
   % compute conduction band parameters
-    [par] = compute_conduction_band_parameters(par.eps, par.xi, par);    
+    [par] = compute_conduction_band_parameters(eps, par);
 
   % sweep  
     for ix = 1 : length(x_range)
@@ -131,7 +119,7 @@ function [] = Fig4_wiggle_well_line_plots(par)
         x_ww = x_wiggle_well(x_range(ix), q_range(iq), 0, par);
 
       % compute valley splitting
-        [out] = compute_valley_splitting(x_ww, compute_derivatives, par);
+        [out] = compute_valley_splitting(x_ww, eps, compute_derivatives, par);
     
         mean_E_VS = out.M;
         var_E_VS  = out.V;
@@ -154,8 +142,8 @@ function [] = Fig4_wiggle_well_line_plots(par)
   % THIRD PLOT
   % fixed amplitude, different strains vs. q
     
-    eps_xy_range = [0 0.05 0.1 0.2]*1E-2;       
-    %q_range      = linspace(0,2,201) * 2*pi/par.a0;
+    %eps_xy_range = [0 0.05 0.1 0.2] * par.units.percent;
+    eps_xy_range = [0 0.1 0.2 0.5] * par.units.percent;
     x_max        = 0.05;
 
     for ieps = 1 : length(eps_xy_range)
@@ -163,12 +151,12 @@ function [] = Fig4_wiggle_well_line_plots(par)
       % set QW strain + fixed shear strain 
         eps_xy = eps_xy_range(ieps);
     
-        par.eps      = eps_QW;
-        par.eps(1,2) = eps_xy;
-        par.eps(2,1) = eps_xy;
+        eps      = eps_QW;
+        eps(1,2) = eps_xy;
+        eps(2,1) = eps_xy;
 
       % compute conduction band parameters
-        [par] = compute_conduction_band_parameters(par.eps, par.xi, par);  
+        [par] = compute_conduction_band_parameters(eps, par);
 
       for iq = 1 : length(q_range)
 
@@ -176,7 +164,7 @@ function [] = Fig4_wiggle_well_line_plots(par)
         x_ww = x_wiggle_well(x_max, q_range(iq), 0, par);
 
       % compute valley splitting
-        [out] = compute_valley_splitting(x_ww, compute_derivatives, par);
+        [out] = compute_valley_splitting(x_ww, eps, compute_derivatives, par);
     
         mean_E_VS = out.M;
         var_E_VS  = out.V;
@@ -212,7 +200,7 @@ function [] = Fig4_wiggle_well_line_plots(par)
     title(['no shear strain, various Ge amplitudes'])
     box on
     legend('Location','eastoutside')
-    ylim([-0.25 6.25])
+    ylim([-1.0 9.0])
     xline(2*par.k0 * par.a0/(2*pi),'m--','Linewidth',2,'DisplayName','2k_0')
     xline(2*par.k1 * par.a0/(2*pi),'c--','Linewidth',2,'DisplayName','2k_1')
 
@@ -231,7 +219,7 @@ function [] = Fig4_wiggle_well_line_plots(par)
     title(['fixed shear strain 0.1% , various Ge amplitudes'])
     box on
     legend('Location','eastoutside')    
-    ylim([-0.25 6.25])
+    ylim([-1.0 9.0])
 
     xline(2*par.k0 * par.a0/(2*pi),'m--','Linewidth',2,'DisplayName','2k_0')
     xline(2*par.k1 * par.a0/(2*pi),'c--','Linewidth',2,'DisplayName','2k_1')
@@ -264,7 +252,7 @@ function [] = Fig4_wiggle_well_line_plots(par)
     title(['various shear strains, fixed Ge amplitude x = ',num2str(x_max)])
     box on
     legend('Location','eastoutside')
-    ylim([-0.1 2.1])
+    ylim([-0.25 3.25])
     
 
   % save
@@ -275,9 +263,6 @@ function [] = Fig4_wiggle_well_line_plots(par)
       set(fig_obj,'Position',[100 100 width height]);
       exportgraphics(fig_obj,'Fig4_WW_line_scan_q_fixed_x_different_eps_xy.pdf','ContentType','vector')
     end
-
-
-
 
 
 

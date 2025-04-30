@@ -1,98 +1,104 @@
 clear all
 clc
 
-format shorte
-
-
-  %%%%%%%%%%%
-  % add folders to path
-    addpath('colormaps/')    
-    addpath('scripts/')    
+ %% path
+    addpath('colormaps/')
+    addpath('src/')
+    addpath('src/pseudopotential/')
+    addpath('scripts/')
     addpath('scripts/silicon_lattice/')
     addpath('scripts/silicon_lattice/arrow3D_pub/')
-    addpath('src/')
 
-  %%%%%%%%%%%%%%%%%%%%
-  % units and constants
-    physical_constants;
-    par.const.e0   = elementaryCharge;
+ %% parameters
+    physical_constants
+    
+  % constants  
     par.const.hbar = reducedPlanckConstant;
+    par.const.e0   = elementaryCharge;
     par.const.m0   = electronMass;
+    par.const.c0   = vacuumSpeedOfLight;
     par.const.aB   = bohrRadius;
-
-    par.units.nm   = 1E-9;
+    
+  % units  
     par.units.eV   = elementaryCharge;
     par.units.meV  = 1E-3 * par.units.eV;
     par.units.ueV  = 1E-6 * par.units.eV;
-    par.units.Ry   = rydberg;
-    par.units.GPa  = 1E9;    
+    par.units.Ry   = 0.5*hartree;
+    par.units.GPa  = 1E9;
+    par.units.nm   = 1E-9;   
+    par.units.Angstrom = 0.1 * par.units.nm;    
+    par.units.percent  = 1E-2;
 
-    par.energy_scale = par.units.eV;
-  
-  %%%%%%%%%%%%%%%%%%%%  
   % lattice constant
-    par.a0_Si   = 0.543 * par.units.nm; % Si (Fischetti & Laux, 1996)
-    par.a0_Ge   = 0.565 * par.units.nm; % Ge (Fischetti & Laux, 1996)
-    par.a0_SiGe = @(x) (1-x) * par.a0_Si + x * par.a0_Ge - 1.88E-3*par.units.nm *x*(1-x); % R. A. Logan, J. M. Rowell, and F. A. Trumbore, Phys. Rev. 136, A1751 (1964)
+    par.a0_Si = 5.43 * par.units.Angstrom;
+    par.a0_Ge = 5.65 * par.units.Angstrom;
     
-  % Si lattice constant
+    par.a0_SiGe = @(x) par.a0_Si + 0.200326 * par.units.Angstrom * x .* (1-x) + (par.a0_Ge-par.a0_Si)*x.^2;
+    
     par.a0      = par.a0_Si;
+    par.a0_subs = par.a0_SiGe(0.3);
 
-  % atomic monolayer width  
+  % add ML as a unit  
     par.units.ML = par.a0/4;
-
-  % atomic volume and volume of primitive cell
-    par.Omega_a  = (0.5*par.a0)^3;  % atomic volume
-    par.Omega_p  = 2 * par.Omega_a;  % primitive unit cell volume
-
-  % Fermi wave number  
-    par.KF       = (3*pi^2 * 4 / par.Omega_a)^(1/3); % cf. J. R. Chelikowsky and M. L. Cohen, Phys. Rev. B 10, 5095 (1974)    
-
-  %%%%%%%%%%%%%%%%%%%%  
-  % elastic constants for Si (Fischetti & Laux, 1996)
-    par.C11 = 165.77 * par.units.GPa;
-    par.C12 =  63.93 * par.units.GPa;
-    par.C44 =  79.62 * par.units.GPa;
-
-  %%%%%%%%%%%%%%%%%%%%  
-  % strain tensor and internal strain parameter
-    [par.eps_QW] = strain_quantum_well(0.3, par);
    
-    par.eps = zeros(3,3);
+  % elasticity 
+    par.C11 = 167.5 * par.units.GPa; % Rieger % Vogl (1993)
+    par.C12 =  65.0 * par.units.GPa; % Rieger % Vogl (1993)
+    par.C44 =  79.6 * par.units.GPa;
 
-  % biaxial strain (QW)    
-    par.eps = par.eps_QW;
-  
-  % add shear strain
-  %{
-    par.eps(1,2) = 0.1 * 1E-2;
-    par.eps(2,1) = par.eps(1,2);
-  %}
+ %% pseudopotential
+    par.pp.nonlocal = 1; % 0 = off | 1 = on
+    par.pp.SOI      = 0; % 0 = off | 1 = on (without SOI, the Ungersboeck pseudopotential model is identical to the model by Rieger & Vogl)
 
-  % internal ionic displacement parameter strain  
-    par.xi  = 0.53;
-  
-  %%%%%%%%%%%%%%%%%%%%   
-  % set special band indices
-    par.idx_VB_high = 4; % highest valence band
-    par.idx_CB_low  = 5; % lowest conduction band
-  
-  %%%%%%%%%%%%%%%%%%
-  % pseudpotential parameters
-  % cutoff energy (determines number of plane waves in pseudopotential calculation)  
-    par.E_cutoff = 8.0 * par.units.Ry;
-  
-  % local form factors are encoded in the atomic potential (function V_atomic_Fischetti)
-    par.V_atomic_model = 1; % 1 = Fischetti/Laux | 2 = Kim/Fischetti | 3 = Fischetti/Higman | 4 = Friedel  
-  
-  % non-local pseudopotential parameters (Fischetti & Laux, 1996)
-    par.alpha0 = 0.55 * par.units.Ry; % s-well depth
-    par.beta0  = 0.32;                % s-well energy dependence (unitless)
-    par.R0     = 2.0 * par.const.aB;  % s-well radius
+  % Fermi vector and energy
+    par.pp.kF = 1.66 * 2*pi/par.a0; % Ungersboeck (2007)
+    par.pp.EF = par.const.hbar^2 * par.pp.kF^2 /(2*par.const.m0);
 
-  %%%%%%%%%%%%%%%%%  
-  % compute conduction band parameters
-    [par] = compute_conduction_band_parameters(par.eps, par.xi, par);
+  % local pseudopotential
+    par.pp.V_0      = -2/3 * par.pp.EF;
+    par.pp.V_sqrt3  = -0.2241 * par.units.Ry;
+    par.pp.V_sqrt8  = +0.0520 * par.units.Ry;
+    par.pp.V_sqrt11 = +0.0724 * par.units.Ry;
+
+  % compute cubic spline interpolation parameters 
+    par.pp.BC_mode = 1; % different BCs for cubic spline interpolation. 1: V'(0)=0 | 2: V''(0) = 0
+    [par.pp.w] = compute_cubic_spline_weights(par);
+
+  % plot atomic pseudopotential
+    %plot_atomic_pseudopotential(par)
+    
+  % nonlocal pseudopotential
+    par.pp.A0 = 0.03 * par.units.Ry;       % s-well depth
+    par.pp.R0 = 1.06 * par.units.Angstrom; % s-well radius
+    %par.pp.R0 = 2 * par.const.aB; % s-well radius
+
+  % spin-orbit interaction
+    par.pp.mu   = 0.00023 * par.units.Ry;
+    par.pp.zeta = 7.5589  * 1/par.units.Angstrom;
+
+  % set scale for internal computations  
+    par.energy_scale = par.units.Ry;
+
+  % cut off energy  
+    par.pp.E_cutoff = 12 * par.units.Ry;
+  
+  % diamond lattice vectors (relaxed)
+    par.pp.a{1} = 0.50 * par.a0 * [0 1 1]';
+    par.pp.a{2} = 0.50 * par.a0 * [1 0 1]';
+    par.pp.a{3} = 0.50 * par.a0 * [1 1 0]';
+    par.pp.tau  = 0.25 * par.a0 * [1 1 1]';
+
+  % Kleinman's internal strain parameter
+    par.pp.internal_strain = 0.53;
+
+  % strain tensor  
+    eps = zeros(3,3);
+
+  % compute band structure parameters
+    [par] = compute_conduction_band_parameters(eps, par);
+
+  % plot band structure
+    %plot_bandstructure(eps, par)
 
   %%%%%%%%%%%%%%%%%%
   % quantum dot parameters
@@ -106,18 +112,18 @@ format shorte
 
   %%%%%%%%%%%%%%%%%  
   % quantum well parameters
-    par.h_QW      = 75  * par.units.ML;
-    par.X_barrier = 0.3;
-    par.sigma_u   = 0.5 * par.units.nm;
-    par.sigma_l   = 0.5 * par.units.nm;
+    par.h_QW      = 75  * par.units.ML; % QW height
+    par.X_barrier = 0.3;                % Ge content in barrier
+    par.sigma_u   = 0.5 * par.units.nm; % width of upper interface
+    par.sigma_l   = 0.5 * par.units.nm; % width of lower interface
 
-  % electric field (in V/m)
+  % vertical electric field (in V/m)
     par.F       = 5.0 * 1E6;
 
   %%%%%%%%%%%%%%%%
   % grid
     par.N  = 2^11;
-    par.L  = 5*par.h_QW;
+    par.L  = 4*par.h_QW;
     par.dz = par.L/par.N;
     par.z  = [0:par.N-1]'*par.dz - par.L/2;
 
@@ -126,8 +132,11 @@ format shorte
 
   %%%%%%%%%%%%%%%%
   % quantum well indicator function
-    par.QW_indicator = 0.5 * tanh((par.z+par.h_QW)/par.sigma_l) + 0.5 * tanh(-par.z/par.sigma_u);
+    %par.QW_indicator = 0.5 * tanh((par.z+0.5*par.h_QW)/par.sigma_l) + 0.5*tanh((-par.z+0.5*par.h_QW)/par.sigma_u); % QW at [-h/2 h/2]
+    par.QW_indicator = 0.5 * tanh((par.z+par.h_QW)/par.sigma_l) + 0.5 * tanh((-par.z)/par.sigma_u); % QW at [-h 0]
 
+    %figure(243);clf;hold all;
+    %plot(par.z, par.QW_indicator)
   % nominal alloy profile    
     par.X_QW = par.X_barrier * (1 - par.QW_indicator);
     
@@ -144,10 +153,13 @@ format shorte
     par.discretization = 1; % 1 = finite difference | 2 = spectral
 
   % number of eigenvalues
-    par.neigs = 25; %  number of eigenvalues
-    
+    par.neigs = 25; %  number of eigenvalues   
 
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % dummy value for artificially negative covariance functions
+    par.Gamma_failure = 1E99;
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   %% plot figures for paper 1
 
    % Fig. 1 (Brillouin zone, strained lattices)
@@ -157,17 +169,20 @@ format shorte
    % Fig. 2 (band structure coefficients vs shear strain)
      Fig2_bandstructure_coeffs_vs_strain(par)
    
-   % Fig. 3  
+   % Fig. 3 
      Fig3_interface_width_dependency(par)
 
    % Fig. 4 
      Fig4_wiggle_well_line_plots(par)
 
    % Fig. 5 
-     Fig5a_wiggle_well_wavenumber_and_amplitude_vs_shear_strain(par)
-     Fig5bcde_wiggle_well_wavenumber_vs_amplitude(par)
+     %Fig5a_wiggle_well_wavenumber_and_amplitude_vs_shear_strain(par)
+     %Fig5bcde_wiggle_well_wavenumber_vs_amplitude(par)
 
 
   
      
-
+%Fig6_field_dependency(par)
+%Fig7_confinement_dependency(par)
+     
+    

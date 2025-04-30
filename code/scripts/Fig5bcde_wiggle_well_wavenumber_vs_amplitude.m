@@ -5,8 +5,7 @@ function [] = Fig5bcde_wiggle_well_wavenumber_vs_amplitude(par)
   % exportgraphics
     save_plot = 1; % 0 = off | 1 = on
 
-
-    par.E_cutoff = 8*par.units.Ry;
+    par.E_cutoff = 12*par.units.Ry;
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % strain tensor for QW
@@ -21,15 +20,14 @@ function [] = Fig5bcde_wiggle_well_wavenumber_vs_amplitude(par)
     x_range = linspace(0,0.25,151);
 
   % set QW strain + fixed shear strain 
-    %eps_xy = 0.1 * 1E-2;
-    eps_xy = 0.07 * 1E-2;
+    eps_xy = 0.12 * par.units.percent;
 
-    par.eps      = eps_QW;
-    par.eps(1,2) = eps_xy;
-    par.eps(2,1) = eps_xy;
+    eps      = eps_QW;
+    eps(1,2) = eps_xy;
+    eps(2,1) = eps_xy;
 
   % compute conduction band parameters
-    [par] = compute_conduction_band_parameters(par.eps, par.xi, par);  
+    [par] = compute_conduction_band_parameters(eps, par);  
 
   %%%%%%%%%%%%%%%%%  
   % quantum well parameters
@@ -41,21 +39,20 @@ function [] = Fig5bcde_wiggle_well_wavenumber_vs_amplitude(par)
   % electric field (in V/m)
     par.F       = 5.0 * 1E6;
 
-
-
   %%%%%%%%%%%%%%%%
   % grid
-    par.N  = 2^11;
-    par.L  = 5*par.h_QW;
+    par.N  = 2^13;
+    par.L  = 4*par.h_QW;
     par.dz = par.L/par.N;
-    par.z  = [0:par.N-1]'*par.dz - par.L/2;
+    par.z  = [0:par.N-1]'*par.dz - 2*par.h_QW;
 
   % k-space grid  
     par.k = [0 : par.N/2-1, -par.N/2:-1]'*2*pi/par.L;
-    
+   %%
   %%%%%%%%%%%%%%%%
   % quantum well indicator
-    par.QW_indicator = 0.5 * tanh((par.z+par.h_QW)/par.sigma_l) + 0.5 * tanh(-par.z/par.sigma_u);
+    %par.QW_indicator = 0.5 * tanh((par.z+0.5*par.h_QW)/par.sigma_l) + 0.5*tanh((-par.z+0.5*par.h_QW)/par.sigma_u); % QW at [-h/2 h/2]
+    par.QW_indicator = 0.5 * tanh((par.z+par.h_QW)/par.sigma_l) + 0.5 * tanh((-par.z)/par.sigma_u); % QW at [-h 0]
 
   % nominal alloy profile    
     par.X_QW         = par.X_barrier * (1 - par.QW_indicator);
@@ -69,21 +66,25 @@ function [] = Fig5bcde_wiggle_well_wavenumber_vs_amplitude(par)
 
   % allocate memory
     map.mean_E_VS = zeros(length(q_range),length(x_range));
-    map.var_E_VS  = zeros(length(q_range),length(x_range));
+    map.std_E_VS  = zeros(length(q_range),length(x_range));
     map.nu        = zeros(length(q_range),length(x_range));
     map.sigma     = zeros(length(q_range),length(x_range));
   
   % compute map
-    fprintf(1,'compute map ... ')
+    fprintf(1,'compute map ... \n')
     tic
     for iq = 1 : length(q_range)
+
+    % print progress  
+      fprintf(1,'%.3f %%\n',iq/length(q_range)*100);
+
       for ix = 1 : length(x_range)
       
       % wiggle well profile          
         x_ww = x_wiggle_well(x_range(ix), q_range(iq), 0, par);
 
       % compute valley splitting
-        [out] = compute_valley_splitting(x_ww, compute_derivatives, par);
+        [out] = compute_valley_splitting(x_ww, eps, compute_derivatives, par);
     
         mean_E_VS = out.M;
         var_E_VS  = out.V;
@@ -294,10 +295,10 @@ function [] = Fig5bcde_wiggle_well_wavenumber_vs_amplitude(par)
       shading interp      
       xlim([0 0.5])
       ylim([0 0.2])
-      cmap2 = divergingColormap1(17);
+      cmap2 = divergingColormap1(21);
       %cmap2 = viridis(20);
       colormap(cmap2)
-      clim([0,1700])
+      clim([0,2100])
       
 
 
@@ -402,11 +403,10 @@ function [] = Fig5bcde_wiggle_well_wavenumber_vs_amplitude(par)
           x = 0.05;
           q = 0;
         case 2 % Ge spike
-          x = 0.17;
-          %q = 0.16 * 2*pi/par.a0;  
+          x = 0.15;
           q = par.k1;
         case 3 % LP-WW
-          x = 0.05;
+          x = 0.06;
           q = 2*par.k1;
         case 4 % Joynt-Feng Ghost
           x = 0.05;
@@ -428,7 +428,7 @@ function [] = Fig5bcde_wiggle_well_wavenumber_vs_amplitude(par)
     
       x_ww = x_wiggle_well(x, q, 0, par);   
   
-      [out] = compute_valley_splitting(x_ww, compute_derivatives, par);
+      [out] = compute_valley_splitting(x_ww, eps, compute_derivatives, par);
       
       mean_E_VS   = out.M;
       std_E_VS    = sqrt(out.V);

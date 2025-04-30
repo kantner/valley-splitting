@@ -1,20 +1,34 @@
-function C2 = coeff_C2(n_range,tol,par)
+function C2 = coeff_C2(n_range, eps, tol, par)
 % compute bandstructure coefficients C2
 
   % In the bandstructure calculation, strain is taken into account without
   % explicit smallness assumption. Here it is however more convenient to
   % employ a linear approximation.
 
+  % compute unstrained reciprocal lattice vectors
+  %{
+    eps_relaxed = zeros(3,3);
+    [par] = reciprocal_lattice_vectors(eps_relaxed, par);
+
+    N_G    = par.pp.N_G
+    G_list = par.pp.G_list
+  %}
+    
+    [par] = reciprocal_lattice_vectors(eps, par);
+    N_G    = par.pp.N_G;
+    G_list = par.pp.G_list;
+    G_list = round(G_list * par.a0/(2*pi))  * (2*pi)/par.a0; 
+
   %%%%%%%%%%%%%%%%%%%%%%
   % create list with strain to linear order
   
   % list of integer vectors (no strain)
-    g_list = round(par.G_list * par.a0/(2*pi));
+    g_list = G_list * par.a0/(2*pi);
   
   % add linear strain
     Id = eye(3);
-    for i = 1 : par.N_G
-      g_list(:,i) = (Id - par.eps) * g_list(:,i);
+    for i = 1 : N_G
+      g_list(:,i) = (Id - eps) * g_list(:,i);
     end
   
   %%%%%%%%%%%%%%%%%%%%%%
@@ -24,17 +38,16 @@ function C2 = coeff_C2(n_range,tol,par)
     C2 = zeros(length(n_range),1);  
   
   % scaled shift vector (times 2*pi/a0)
-    G0 = compute_G0(par);
+    G0 = compute_G0(eps, par);
     g0 = G0 * par.a0/(2*pi);
-    %g0 = 2*[-par.eps(1,3); - par.eps(2,3); 1-par.eps(3,3)];
 
   % add up coefficients       
-    for i1 = 1 : par.N_G
+    for i1 = 1 : N_G
       g1 = g_list(:,i1);
 
-      for i2 = 1 : par.N_G
+      for i2 = 1 : N_G
         g2 = g_list(:,i2);
-    
+
         % take sum (using complex conjugation of c_-(G) = c_+^*(-G)
           g = g1 + g2;
     
