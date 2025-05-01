@@ -132,11 +132,8 @@ clc
 
   %%%%%%%%%%%%%%%%
   % quantum well indicator function
-    %par.QW_indicator = 0.5 * tanh((par.z+0.5*par.h_QW)/par.sigma_l) + 0.5*tanh((-par.z+0.5*par.h_QW)/par.sigma_u); % QW at [-h/2 h/2]
     par.QW_indicator = 0.5 * tanh((par.z+par.h_QW)/par.sigma_l) + 0.5 * tanh((-par.z)/par.sigma_u); % QW at [-h 0]
 
-    %figure(243);clf;hold all;
-    %plot(par.z, par.QW_indicator)
   % nominal alloy profile    
     par.X_QW = par.X_barrier * (1 - par.QW_indicator);
     
@@ -176,8 +173,8 @@ clc
      Fig4_wiggle_well_line_plots(par)
 
    % Fig. 5 
-     %Fig5a_wiggle_well_wavenumber_and_amplitude_vs_shear_strain(par)
-     %Fig5bcde_wiggle_well_wavenumber_vs_amplitude(par)
+     Fig5a_wiggle_well_wavenumber_and_amplitude_vs_shear_strain(par)
+     Fig5bcde_wiggle_well_wavenumber_vs_amplitude(par)
 
 
   
