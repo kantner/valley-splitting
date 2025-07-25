@@ -267,8 +267,65 @@ function [] = Fig4_wiggle_well_line_plots(par)
 
 
 
+ %% additional plot on amplitude dependence
+ %{
+    X_ww_range = logspace(-6, -1, 201)';
+    %q_range = [par.k1, 2*par.k1, par.k0, 2*par.k0];
+    q_range = [2*par.k1, 2*par.k0];
+    
+    mean_E_VS = zeros(length(X_ww_range),length(q_range));
+    var_E_VS  = zeros(length(X_ww_range),length(q_range));
+    nu        = zeros(length(X_ww_range),length(q_range));
+    sigma     = zeros(length(X_ww_range),length(q_range));
+    
+    % set strain
+      eps_xy = 0.05 * par.units.percent;
+    
+      eps      = eps_QW;
+      eps(1,2) = eps_xy;
+      eps(2,1) = eps_xy;
+    
+    % compute conduction band parameters
+      [par] = compute_conduction_band_parameters(eps, par);     
+    
+    % sweep  
+      for iq = 1 : length(q_range)
+        for ix = 1 : length(X_ww_range)
+    
+        % wiggle well profile          
+          x_ww = x_wiggle_well(X_ww_range(ix), q_range(iq), 0, par);
+    
+        % compute valley splitting
+          [out] = compute_valley_splitting(x_ww, eps, compute_derivatives, par);
+    
+          mean_E_VS(ix,iq) = out.M;
+          var_E_VS(ix,iq)  = out.V;
+          nu(ix,iq)        = out.nu;
+          sigma(ix,iq)     = out.sigma;
+
+
+        end
+      end
+
+      figure(134345);clf;hold all;
+      name = {'k_1','2k_1','k_0','2k_0'};
+      for iq = 1 : length(q_range)
+        %plot(X_ww_range, mean_E_VS(:,iq)/par.units.ueV,'LineWidth',2,'DisplayName',name{iq})
+        plot(X_ww_range, nu(:,iq)/par.units.ueV,'LineWidth',2,'DisplayName',name{iq})
+      end
+      plot(X_ww_range,0.55E5*X_ww_range,'k--','LineWidth',2,'DisplayName','X')
+      plot(X_ww_range,0.28E4*X_ww_range.^0.9,'k--','LineWidth',2,'DisplayName','X^{0.9}')
+      set(gca,'XScale','log')
+      
+
+      set(gca,'YScale','log')
+      xlabel('wiggle well amplitude')
+      ylabel('mean valley splitting')
+      legend()
+      box on;
+%}
+    
+   
 end
-
-
 
 

@@ -11,7 +11,7 @@ function [f, df_dX, df_dpsi] = kernel_I_rand(n, psi0, x, eps, par)
 % gaussians
   gauss_x = exp( -0.5 * (n*G0(1)*par.l_x/2)^2 );
   gauss_y = exp( -0.5 * (n*G0(2)*par.l_y/2)^2 );
-  gauss   = gauss_x * gauss_y;  
+  gauss   = gauss_x * gauss_y;
 
 % prefactor
   prefactor = (par.dEc)^2 * par.Omega_a/(2*pi*par.l_x * par.l_y);

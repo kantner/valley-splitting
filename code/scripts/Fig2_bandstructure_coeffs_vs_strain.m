@@ -1,10 +1,5 @@
 function [] = Fig2_bandstructure_coeffs_vs_strain(par)
 
-  %%%%%%%%%%%%%
-  % energy cutoff
-    par.pp.E_cutoff = 12 * par.units.Ry; % reduce for fast debugging
-
-
   % exportgraphics
     save_plot = 1; % 0 = off | 1 = on
 
@@ -93,29 +88,20 @@ function [] = Fig2_bandstructure_coeffs_vs_strain(par)
 
       sgtitle('Figure 2(b)')
 
-      for i = 1 : 2
-      subplot(1,2,i); hold all;
-
       cmap = temperatureColormap(length(par.n_range));
       for in = 1 : length(par.n_range)
         if sum(abs(C4_list(in,:))) > 0  && par.n_range(in) >= 0 % only positive because of symmetry     
-        plot(eps_range*100, C4_list(in,:),'-','Color',cmap(in,:),'LineWidth',2,'DisplayName',['C^{(4,-)}_{\pm',num2str(par.n_range(in)),'}'])
+        plot(eps_range*100, C4_list(in,:),'-','Color',cmap(in,:),'LineWidth',2,'DisplayName',['C^{(4)}_{\pm',num2str(par.n_range(in)),'}'])
         end
       end
       legend('Location','eastoutside')
       box on
       xlabel('\epsilon_{x,y} (%)')
-      ylabel('band structure coefficients C^{(4,-)}')
-        if i == 1
-          set(gca,'XScale','linear')
-          set(gca,'YScale','linear')
-          ylim([-0.1 0.1])  
-        elseif i == 2
-          set(gca,'XScale','linear')
-          set(gca,'YScale','linear')
-          ylim([1.35 1.40])  
-        end
-      end
+      ylabel('band structure coefficients C^{(4)}')
+      set(gca,'XScale','linear')
+      set(gca,'YScale','linear')
+      ylim([-0.005 0.085])  
+
       
     % save
       drawnow
@@ -123,7 +109,7 @@ function [] = Fig2_bandstructure_coeffs_vs_strain(par)
         height = 800;
         width  = 1600;
         set(fig_obj,'Position',[100 100 width height]);        
-        exportgraphics(fig_obj,'Fig2b_C4m_vs_eps_xy.pdf','ContentType','vector')
+        exportgraphics(fig_obj,'Fig2b_C4_vs_eps_xy.pdf','ContentType','vector')
       end    
 
 end

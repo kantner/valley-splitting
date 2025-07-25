@@ -131,7 +131,7 @@ function [par] = compute_conduction_band_parameters(eps, par)
   %%%%%%%%%%%%%  
   % Bloch factor plane wave expansion coefficients and bandstructure coefficients C^(2), C^(4) for conduction band
     %par.c = c(:,par.pp.idx_CB);
-    par.n_range = [-10:10]';
+    par.n_range = [-15:15]';
     [par.c, par.C2, par.C4] = compute_bandstructure_coefficients(par.n_range, eps, par);
 
 

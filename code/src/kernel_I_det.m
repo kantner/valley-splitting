@@ -1,4 +1,4 @@
-function [f, df_dX, df_dpsi] = kernel_I_det(n, psi0, E0, x, eps, par)
+function [f, df_dX, df_dpsi] = kernel_I_det(n, psi0, x, eps, par)
 % integral kernel and derivatives for
 % deterministic contribution to valley-splitting
 % INPUT: psi0 and E0 are ground-state solutions of the longitudinal confinement problem
@@ -21,8 +21,8 @@ function [f, df_dX, df_dpsi] = kernel_I_det(n, psi0, E0, x, eps, par)
   gauss   = gauss_x * gauss_y;
 
 % energy contribution from in-plane (QD) part 
-  E_QD_x = 0.5 * par.const.hbar * par.omega_x * ( 0.5 + arg_x_sq);
-  E_QD_y = 0.5 * par.const.hbar * par.omega_y * ( 0.5 + arg_y_sq);
+  E_QD_x = 0.5 * par.const.hbar * par.omega_x * ( 0.5 - arg_x_sq);
+  E_QD_y = 0.5 * par.const.hbar * par.omega_y * ( 0.5 - arg_y_sq);
   E_QD   = E_QD_x + E_QD_y;
 
 
@@ -30,8 +30,8 @@ function [f, df_dX, df_dpsi] = kernel_I_det(n, psi0, E0, x, eps, par)
   U_x = potential_modification(x, par);
   U   = par.U_F + par.U_QW + U_x;
 
-% U minus E
-  U_minus_E = U - E_QD - E0;
+% effective potential
+  U_eff = U + E_QD;
 
 % squared wave function (renormalize w.r.t. dz)
   psi    = psi0/sqrt(par.dz);
@@ -39,12 +39,12 @@ function [f, df_dX, df_dpsi] = kernel_I_det(n, psi0, E0, x, eps, par)
 
 % integral kernel
   exp_iarg_psi_sq = exp_iarg .* psi_sq;
-  f   = gauss * U_minus_E .* exp_iarg_psi_sq;
+  f   = gauss * U_eff .* exp_iarg_psi_sq;
 
 % integral kernel derivatives  
   if nargout > 1
     df_dX   = gauss * par.dEc .* exp_iarg_psi_sq;
-    df_dpsi = gauss * U_minus_E .* exp_iarg .* (2*psi);
+    df_dpsi = gauss * U_eff .* exp_iarg .* (2*psi);
   end
 
 

@@ -5,7 +5,7 @@ function [] = Fig3_interface_width_dependency(par)
     save_plot = 1; % 0 = off | 1 = on
 
   % set parameter range
-    sigma_range = linspace(0.001,8.5,151) * par.units.ML;
+    sigma_range = linspace(0.001,10.5,501) * par.units.ML;
 
   % QW
     par.h_QW      = 75 * par.units.ML;
@@ -13,7 +13,7 @@ function [] = Fig3_interface_width_dependency(par)
  
   % grid
     par.N     = 2^13;
-    par.L     = 5*par.h_QW;
+    par.L     = 7*par.h_QW;
     par.dz    = par.L/par.N;
     par.z     = [0:par.N-1]'*par.dz - par.L/2;
 
@@ -22,7 +22,7 @@ function [] = Fig3_interface_width_dependency(par)
 
   % set strain
     [eps_QW]     = strain_quantum_well(0.3, par);
-    eps_xy_range = [0, 0.1] * par.units.percent;
+    eps_xy_range = [0, 0.05] * par.units.percent;
 
   %%%%%%%%%%%%%%%%%%
   % quantum dot parameters
@@ -49,14 +49,14 @@ function [] = Fig3_interface_width_dependency(par)
 
 
   for is = 1 : length(sigma_range)
-
+    is
     %%%%%%%%%%%%%%%%%  
     % quantum well interface width
       par.sigma_u   = sigma_range(is);
       par.sigma_l   = sigma_range(is);
   
     %%%%%%%%%%%%%%%%
-    % quantum well indicator
+    % quantum well indicator (QW centered around z=0)
       par.QW_indicator = 0.5 * tanh((par.z+0.5*par.h_QW)/par.sigma_l) + 0.5 * tanh((-par.z+0.5*par.h_QW)/par.sigma_u);
   
     % nominal alloy profile    
@@ -114,7 +114,7 @@ function [] = Fig3_interface_width_dependency(par)
     sgtitle('interface width dependency')
 
     ymin = -20;
-    ymax = 320;
+    ymax = 270;
 
     length_scale = par.units.ML;
     energy_scale = par.units.ueV;
@@ -190,7 +190,7 @@ function [] = Fig3_interface_width_dependency(par)
       legend()
       box on;
       set(gca,'YScale','log')
-      ylim([0.3E-1, 8E2])      
+      ylim([0.3E-1, 4E2])      
       xlim([min(sigma_range) max(sigma_range)]/length_scale)
       xlabel('interface width (ML)')
       ylabel('energy (ueV)')

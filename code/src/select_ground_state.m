@@ -36,7 +36,7 @@ function idx_gnd = select_ground_state(S, E, psi_ref, x, par)
 
   %%%%%%%%%%%%%%%%%%%%%
   % selection criterion  
-    criterion = overlap./energy_dist;
+    criterion = overlap./sqrt(energy_dist);
           
   % find maximum of criterion  
     idx_gnd = find(criterion == max(criterion));

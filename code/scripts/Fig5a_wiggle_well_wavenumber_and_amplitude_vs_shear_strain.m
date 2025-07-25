@@ -1,26 +1,23 @@
 function [] = Fig5a_wiggle_well_wavenumber_and_amplitude_vs_shear_strain(par)
 
   %%%%%%%%%%%%%
-  % energy cutoff
-    par.pp.E_cutoff = 12 * par.units.Ry;
-
   % exportgraphics
     save_plot = 1; % 0 = off | 1 = on
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % shear strain range
-    eps_range = linspace(0, 0.2, 51) * par.units.percent;
+    eps_range = linspace(0, 0.1, 101) * par.units.percent;
     
   % amplitude range   
-    x_range   = linspace(0, 0.2, 101);
+    x_range   = linspace(0, 0.15, 121);
 
   % fixed k1
     k1 = 0.16 * 2*pi/par.a0;
     
   % allocate memory
-    k0_list  = zeros(1, length(eps_range));
-    C2_list  = zeros(length(par.n_range), length(eps_range));
-    C4m_list = zeros(length(par.n_range), length(eps_range));
+    k0_list = zeros(1, length(eps_range));
+    C2_list = zeros(length(par.n_range), length(eps_range));
+    C4_list = zeros(length(par.n_range), length(eps_range));
 
   % quantum well strain
     [eps_QW] = strain_quantum_well(0.3, par);
@@ -50,7 +47,6 @@ function [] = Fig5a_wiggle_well_wavenumber_and_amplitude_vs_shear_strain(par)
     %par.QW_indicator = 0.5 * tanh((par.z+0.5*par.h_QW)/par.sigma_l) + 0.5*tanh((-par.z+0.5*par.h_QW)/par.sigma_u); % QW at [-h/2 h/2]
     par.QW_indicator = 0.5 * tanh((par.z+par.h_QW)/par.sigma_l) + 0.5 * tanh((-par.z)/par.sigma_u); % QW at [-h 0]
 
-
   % nominal alloy profile    
     par.X_QW = par.X_barrier * (1 - par.QW_indicator);
     
@@ -74,9 +70,9 @@ function [] = Fig5a_wiggle_well_wavenumber_and_amplitude_vs_shear_strain(par)
         [par] = compute_conduction_band_parameters(eps, par);  
         
       % store k0
-        k0_list(ieps)    = par.k0; 
-        C2_list(:,ieps)  = par.C2;
-        C4m_list(:,ieps) = par.C4;
+        k0_list(ieps)   = par.k0; 
+        C2_list(:,ieps) = par.C2;
+        C4_list(:,ieps) = par.C4;
 
       for ix = 1 : length(x_range)
       
@@ -109,16 +105,16 @@ function [] = Fig5a_wiggle_well_wavenumber_and_amplitude_vs_shear_strain(par)
       plot_title   = ['fixed q = 2\timesk_1 = ',num2str(2*k1 * par.a0/(2*pi)),' \times 2\pi/a_0'];
       file_name    = 'Fig5a_map_WW_E_VS_x_vs_eps_at_q_fixed.pdf';
       x_axis_min   = 0;
-      x_axis_max   = 0.2;
+      x_axis_max   = 0.15;
       c_axis_min   = 0;
-      c_axis_max   = 2.4;
+      c_axis_max   = 1.0;
       %cmap         = divergingColormap1(25);
-      cmap         = flipud(lajolla(12));
+      cmap         = flipud(lajolla(20));
 
       y_axis_range = eps_range / par.units.percent;
       y_axis_label = 'shear strain \epsilon_{x,y} (%)';
       y_axis_min   = 0;
-      y_axis_max   = 0.15;
+      y_axis_max   = 0.1;
         
       fig_obj = figure(80000); clf; hold all;
         nrows = 2;

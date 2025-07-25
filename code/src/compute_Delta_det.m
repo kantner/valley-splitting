@@ -1,4 +1,4 @@
-function [Delta_det, D_Delta_det_dX, D_Delta_det_dpsi, Delta_det_n] = compute_Delta_det(psi0, E0, x, eps, par)
+function [Delta_det, D_Delta_det_dX, D_Delta_det_dpsi, Delta_det_n] = compute_Delta_det(psi0, x, eps, par)
 % compute deterministic part of complex-valued valley-splitting parameter
   
 % allocate
@@ -10,7 +10,7 @@ function [Delta_det, D_Delta_det_dX, D_Delta_det_dpsi, Delta_det_n] = compute_De
   end
          
   for in = 1 : length(par.n_range)
-    [f,df_dX,df_dpsi] = kernel_I_det(par.n_range(in), psi0, E0, x, eps, par);
+    [f,df_dX,df_dpsi] = kernel_I_det(par.n_range(in), psi0, x, eps, par);
 
     integral(in) = par.dz * sum(f);
 

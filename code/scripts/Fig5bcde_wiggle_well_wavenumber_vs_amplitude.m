@@ -5,8 +5,6 @@ function [] = Fig5bcde_wiggle_well_wavenumber_vs_amplitude(par)
   % exportgraphics
     save_plot = 1; % 0 = off | 1 = on
 
-    par.E_cutoff = 12*par.units.Ry;
-
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % strain tensor for QW
     [eps_QW] = strain_quantum_well(0.3, par);
@@ -17,10 +15,11 @@ function [] = Fig5bcde_wiggle_well_wavenumber_vs_amplitude(par)
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % Ge conc vs. q
     q_range = linspace(0,0.5,151) * 2*pi/par.a0;
-    x_range = linspace(0,0.25,151);
+    x_range = linspace(0,0.25,161);
 
   % set QW strain + fixed shear strain 
-    eps_xy = 0.12 * par.units.percent;
+    %eps_xy = 0.1 * par.units.percent;
+    eps_xy = 0.025 * par.units.percent;
 
     eps      = eps_QW;
     eps(1,2) = eps_xy;
@@ -294,11 +293,11 @@ function [] = Fig5bcde_wiggle_well_wavenumber_vs_amplitude(par)
       box on
       shading interp      
       xlim([0 0.5])
-      ylim([0 0.2])
-      cmap2 = divergingColormap1(21);
+      ylim([0 0.25])
+      cmap2 = divergingColormap1(16);
       %cmap2 = viridis(20);
       colormap(cmap2)
-      clim([0,2100])
+      clim([0,400])
       
 
 
@@ -402,13 +401,13 @@ function [] = Fig5bcde_wiggle_well_wavenumber_vs_amplitude(par)
         case 1 % uniform Ge
           x = 0.05;
           q = 0;
-        case 2 % Ge spike
-          x = 0.15;
+        case 2 % "Ge spike" (harmonic/second order effect)
+          x = 0.20;
           q = par.k1;
         case 3 % LP-WW
-          x = 0.06;
+          x = 0.15;
           q = 2*par.k1;
-        case 4 % Joynt-Feng Ghost
+        case 4 % harmonic/second order effect
           x = 0.05;
           q = par.k0;
         case 5 % SP-WW
@@ -433,7 +432,8 @@ function [] = Fig5bcde_wiggle_well_wavenumber_vs_amplitude(par)
       mean_E_VS   = out.M;
       std_E_VS    = sqrt(out.V);
       nu          = out.nu;
-      sigma       = out.sigma;
+      sigma       = out.sigma; % this is the sigma for the rician (not for normal!)
+      Gamma       = 0.5 * sigma^2;
       Delta_det   = out.Delta_det;
       Delta_det_n = out.Delta_det_n;
         
@@ -490,18 +490,35 @@ function [] = Fig5bcde_wiggle_well_wavenumber_vs_amplitude(par)
       subplot(nrows,ncols,3*ncols + iq); hold all;                
         plot(real(Delta_det)/par.units.ueV, imag(Delta_det)/par.units.ueV, 'ko')
         phi = linspace(0,2*pi,101);
-        rad = 1/sqrt(2) * sigma/par.units.ueV;
+        %rad = 1/sqrt(2) * sigma/par.units.ueV;
+        rad = 1/2 * sigma/par.units.ueV;
         plot( real(Delta_det)/par.units.ueV + rad*cos(phi), imag(Delta_det)/par.units.ueV + rad*sin(phi), 'r-')
-        xlim([-1 1]*520)
-        ylim([-1 1]*520)
+        xlim([-1 1]*200)
+        ylim([-1 1]*200)
         xlabel('Re(\Delta) (ueV)')
         ylabel('Im(\Delta) (ueV)')   
         xline(0,'k--')
         yline(0,'k--')
-        set(gca,'XTick',[-1000:100:1000])
-        set(gca,'YTick',[-1000:100:1000])
+        set(gca,'XTick',[-200:100:200])
+        set(gca,'YTick',[-200:100:200])
         box on
         axis square
+
+
+        sigma_gauss = 0.5*sigma/par.units.ueV; % convert sigma from Rice to Normal
+        Re_Delta    = linspace(-1,1,501)*200; % in ueV
+        Im_Delta    = Re_Delta;
+        Re_gaussian = 1/(2*pi*sigma_gauss^2) * exp(-0.5* ((Re_Delta-real(Delta_det/par.units.ueV))/sigma_gauss).^2);
+        Im_gaussian = 1/(2*pi*sigma_gauss^2) * exp(-0.5* ((Im_Delta-imag(Delta_det/par.units.ueV))/sigma_gauss).^2);
+
+        surf(Re_Delta,Im_Delta,(Re_gaussian'*Im_gaussian)');
+        shading flat
+        Ncol = 32;
+        cmap = [ones(Ncol,1), linspace(0,1,Ncol)', linspace(0,1,Ncol)'];
+        cmap = flipud(cmap);
+        %cmap = cmap(Ncol/2+1:end,:);
+        colormap(cmap);
+
 
       % Fourier trafo
       plot_counter = plot_counter + 1;              
@@ -519,13 +536,15 @@ function [] = Fig5bcde_wiggle_well_wavenumber_vs_amplitude(par)
 
 
         xline(2* par.k1 * par.a0/(2*pi),'m--')
-        xline(2* par.k0 * par.a0/(2*pi),'r--')
-        ylim([1E-5 1E1])
+        xline(2* par.k0 * par.a0/(2*pi),'r--')        
         xlim([5E-2,3.5])
-        set(gca,'YTick',logspace(-7,2,10))
+        %ylim([3E-6 1E1])
+        ylim([5E-3 2E0])
+        set(gca,'YTick',[1E-3,1E-2,1E-1,1E0,1E1])
 
 
     end
+    
 
   % save
     drawnow
@@ -536,7 +555,7 @@ function [] = Fig5bcde_wiggle_well_wavenumber_vs_amplitude(par)
       exportgraphics(fig_obj,'Fig5cde_map_WW_E_VS_q_vs_x_at_eps_xy_fixed---wavefunctions.pdf','ContentType','vector')
     end
 
-
+ 
 
 
 
@@ -544,7 +563,3 @@ function [] = Fig5bcde_wiggle_well_wavenumber_vs_amplitude(par)
 
 
 end
-
-
-
-

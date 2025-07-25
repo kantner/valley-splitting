@@ -18,7 +18,7 @@ function [out] = compute_valley_splitting(x, eps, compute_derivatives, par)
     E0   = E(idx_gnd);
 
   %%%%%%%%%%%%%%%%%%%%%%%  
-  % plot
+  % plot / debug
     plot_solution = 0;
     if plot_solution == 1
       figure(1344); clf; hold all;
@@ -43,9 +43,9 @@ function [out] = compute_valley_splitting(x, eps, compute_derivatives, par)
     
   % determinsitic part
     if compute_derivatives == 1
-      [Delta_det, D_Delta_det_dX, D_Delta_det_dpsi, Delta_det_n] = compute_Delta_det(psi0, E0, x, eps, par);
+      [Delta_det, D_Delta_det_dX, D_Delta_det_dpsi, Delta_det_n] = compute_Delta_det(psi0, x, eps, par);
     else
-      [Delta_det, ~, ~, Delta_det_n] = compute_Delta_det(psi0, E0, x, eps, par);
+      [Delta_det, ~, ~, Delta_det_n] = compute_Delta_det(psi0, x, eps, par);
     end
 
   % random part: covariance

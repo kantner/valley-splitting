@@ -14,6 +14,7 @@ function C2 = coeff_C2(n_range, eps, tol, par)
     G_list = par.pp.G_list
   %}
     
+    %eps_relaxed = zeros(3,3);
     [par] = reciprocal_lattice_vectors(eps, par);
     N_G    = par.pp.N_G;
     G_list = par.pp.G_list;
@@ -45,8 +46,15 @@ function C2 = coeff_C2(n_range, eps, tol, par)
     for i1 = 1 : N_G
       g1 = g_list(:,i1);
 
-      for i2 = 1 : N_G
+      for i2 = i1 : N_G
         g2 = g_list(:,i2);
+
+        if i2 == i1
+          factor = 1;
+        else
+          factor = 2; % contribution from i2<i1
+        end
+
 
         % take sum (using complex conjugation of c_-(G) = c_+^*(-G)
           g = g1 + g2;
@@ -60,7 +68,7 @@ function C2 = coeff_C2(n_range, eps, tol, par)
               if abs(g(2) - n*g0(2) ) <= tol
                 if abs(g(3) - n*g0(3) ) <= tol
                 % add up coefficients  
-                  C2(in) = C2(in) + par.c(i1)' * par.c(i2)';
+                  C2(in) = C2(in) + factor * par.c(i1)' * par.c(i2)';
                 end
               end
             end
